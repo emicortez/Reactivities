@@ -1,8 +1,8 @@
 import React, { useState, FormEvent, useContext, useEffect } from "react";
-import { Segment, Form, Button } from "semantic-ui-react";
+import { Segment, Form, Button, Grid } from "semantic-ui-react";
 import { IActivity } from "../../../app/models/activity";
 import { v4 as uuid } from "uuid";
-import ActivityStore from "../../../stores/activityStore";
+import ActivityStore from "../../../app/stores/activityStore";
 import { observer } from "mobx-react-lite";
 import { RouteChildrenProps } from "react-router-dom";
 
@@ -68,7 +68,9 @@ const ActivityForm: React.FC<RouteChildrenProps<DetailParams>> = ({
   };
 
   return (
-    <Segment clearing>
+<Grid>
+  <Grid.Column width={10}>
+  <Segment clearing>
       <Form onSubmit={handleSumbit}>
         <Form.Input
           placeholder="Title"
@@ -123,6 +125,10 @@ const ActivityForm: React.FC<RouteChildrenProps<DetailParams>> = ({
         />
       </Form>
     </Segment>
+  </Grid.Column>
+</Grid>
+
+
   );
 };
 
