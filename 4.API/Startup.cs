@@ -1,4 +1,6 @@
+using API.Middleware;
 using Application.Activities;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,33 +35,40 @@ namespace API
                 {
                     policiy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
                 });
-            });
+           });
 
             services.AddMediatR(typeof(List.Handler).Assembly);
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddFluentValidation(x =>
+                    x.RegisterValidatorsFromAssemblyContaining<Create>());
+                //.SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
         }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        if (env.IsDevelopment())
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseDeveloperExceptionPage();
+            app.UseMiddleware<ErrorHandlingMiddleware>();
+
+            if (env.IsDevelopment())
+            {
+                //app.UseDeveloperExceptionPage();
+
+
+            }
+
+            // app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseCors("CorsPolicy");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
-
-        // app.UseHttpsRedirection();
-
-        app.UseRouting();
-
-        app.UseAuthorization();
-
-        app.UseCors("CorsPolicy");
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
     }
-}
 }
