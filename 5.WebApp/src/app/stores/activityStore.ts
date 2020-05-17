@@ -1,13 +1,17 @@
+import { RootStore } from './rootStore';
 import { IActivity } from './../models/activity';
-import { observable, action, computed, configure, runInAction } from 'mobx';
-import { createContext, SyntheticEvent } from 'react';
+import { observable, action, computed, runInAction } from 'mobx';
+import { SyntheticEvent } from 'react';
 import agent from '../../api/agent';
 import { history } from '../..';
 import { toast } from 'react-toastify';
 
-configure({ enforceActions: 'always' });
+export default class ActivityStore {
+    rootStore: RootStore;
+    constructor(rootStore: RootStore) {
+        this.rootStore = rootStore;
+    }
 
-class ActivityStore {
     @observable activityRegistry = new Map();
     @observable activity: IActivity | null = null;
     @observable loadingInitial = false;
@@ -18,15 +22,15 @@ class ActivityStore {
         return this.groupActivitiesByDate(Array.from(this.activityRegistry.values()));
     }
 
-    groupActivitiesByDate(activities: IActivity[]){
+    groupActivitiesByDate(activities: IActivity[]) {
         const sortedActivities = activities.sort((a, b) => a.date.getTime() - b.date.getTime());
-        return Object.entries(sortedActivities.reduce((activities /* Previous value */, activity /* current value */)=>{
+        return Object.entries(sortedActivities.reduce((activities /* Previous value */, activity /* current value */) => {
             const date = activity.date!.toISOString().split('T')[0];
 
-            activities[date] = activities[date] ? [...activities[date], activity] :  [activity];
+            activities[date] = activities[date] ? [...activities[date], activity] : [activity];
             return activities;
 
-        }, {} as {[key:string] : IActivity[] }));
+        }, {} as { [key: string]: IActivity[] }));
     }
 
     @action loadActivities = async () => {
@@ -146,4 +150,4 @@ class ActivityStore {
     }
 }
 
-export default createContext(new ActivityStore());
+// export default createContext(new ActivityStore());
