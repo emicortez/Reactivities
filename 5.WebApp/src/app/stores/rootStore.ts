@@ -1,6 +1,7 @@
 import ActivityStore from './activityStore';
 import UserStore from './userStore';
 import CommonStore from './commonStore';
+import ProfileStore from './profileStore';
 import { createContext } from 'react';
 import { configure } from 'mobx';
 import ModalStore from './modalStore';
@@ -12,12 +13,14 @@ export class RootStore {
     userStore: UserStore;
     commonStore: CommonStore;
     modalStore: ModalStore;
+    profileStore: ProfileStore;
 
     constructor() {
         this.activityStore = new ActivityStore(this);
         this.userStore = new UserStore(this);
         this.commonStore = new CommonStore(this);
         this.modalStore = new ModalStore(this);
+        this.profileStore = new ProfileStore(this);
     }
 }
 
