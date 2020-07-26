@@ -1,4 +1,5 @@
 using API.Middleware;
+using API.SignalR;
 using Application.Activities;
 using Application.Interfaces;
 using AutoMapper;
@@ -20,6 +21,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace API
 {
@@ -45,13 +47,15 @@ namespace API
            {
                opt.AddPolicy("CorsPolicy", policiy =>
                 {
-                    policiy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
+                    policiy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000").AllowCredentials();
                 });
            });
 
             services.AddMediatR(typeof(List.Handler).Assembly);
 
             services.AddAutoMapper(typeof(List.Handler));
+
+            services.AddSignalR();
 
             services.AddMvc(opt =>
             {
@@ -92,6 +96,22 @@ namespace API
                         ValidateAudience = false,
                         ValidateIssuer = false,
                     };
+
+                    opt.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+
+                            if(!string.IsNullOrEmpty(path) && (path.StartsWithSegments("/chat") ))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             services.AddScoped<IJwtGenerator, JwtGenerator>();
@@ -123,6 +143,7 @@ namespace API
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
 
 
