@@ -55,13 +55,13 @@ const ActivityForm: React.FC<RouteChildrenProps<DetailParams>> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (match?.params.id) {
+    if (match!.params.id) {
       setLoading(true);
-      loadActivity(match.params.id)
+      loadActivity(match!.params.id)
         .then((activity) => setActivity(new ActivityFormValues(activity)))
         .finally(() => setLoading(false));
     }
-  }, [match, loadActivity, match?.params.id]);
+  }, [match, loadActivity, activity, setLoading]);
 
   const handleFinalFormSubmit = (values: any) => {
     const dateAndTime = combineDateAndTime(values.date, values.time);
