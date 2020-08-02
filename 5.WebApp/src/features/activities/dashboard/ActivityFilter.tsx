@@ -14,21 +14,21 @@ const ActivityFilters = () => {
         <Header icon={"filter"} attached color={"teal"} content={"Filters"} />
         <Menu.Item
           active={predicate.size === 0}
-          onClick={() => setPredicate("all", "true")}
+          onClick={() => setPredicate('all', 'true')}
           color={"blue"}
           name={"all"}
           content={"All Activities"}
         />
         <Menu.Item
           active={predicate.has("isGoing")}
-          onClick={() => setPredicate("isGoing", "true")}
+          onClick={() => setPredicate('isGoing', 'true')}
           color={"blue"}
           name={"username"}
           content={"I'm Going"}
         />
         <Menu.Item
           active={predicate.has("isHost")}
-          onClick={() => setPredicate("isHost", "true")}
+          onClick={() => setPredicate('isHost', 'true')}
           color={"blue"}
           name={"host"}
           content={"I'm hosting"}

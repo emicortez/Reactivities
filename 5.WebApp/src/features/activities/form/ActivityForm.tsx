@@ -3,7 +3,7 @@ import { Segment, Form, Button, Grid } from "semantic-ui-react";
 import { ActivityFormValues } from "../../../app/models/activity";
 import { v4 as uuid } from "uuid";
 import { observer } from "mobx-react-lite";
-import { RouteChildrenProps } from "react-router-dom";
+import { RouteComponentProps } from "react-router-dom";
 import { Form as FinalForm, Field } from "react-final-form";
 import TextInput from "../../../app/common/form/TextInput";
 import TextAreaInput from "../../../app/common/form/TextAreaInput";
@@ -38,7 +38,7 @@ interface DetailParams {
   id: string;
 }
 
-const ActivityForm: React.FC<RouteChildrenProps<DetailParams>> = ({
+const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({
   match,
   history,
 }) => {
@@ -55,13 +55,13 @@ const ActivityForm: React.FC<RouteChildrenProps<DetailParams>> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (match!.params.id) {
+    if (match.params.id) {
       setLoading(true);
       loadActivity(match!.params.id)
         .then((activity) => setActivity(new ActivityFormValues(activity)))
         .finally(() => setLoading(false));
     }
-  }, [match, loadActivity, activity, setLoading]);
+  }, [match, match.params.id, loadActivity]);
 
   const handleFinalFormSubmit = (values: any) => {
     const dateAndTime = combineDateAndTime(values.date, values.time);

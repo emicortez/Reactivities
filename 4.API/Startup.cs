@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -48,7 +49,11 @@ namespace API
            {
                opt.AddPolicy("CorsPolicy", policiy =>
                 {
-                    policiy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000").AllowCredentials();
+                    policiy.AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .WithExposedHeaders("WWW-Authenticate")
+                           .WithOrigins("http://localhost:3000")
+                           .AllowCredentials();
                 });
            });
 
@@ -96,6 +101,8 @@ namespace API
                         IssuerSigningKey = key,
                         ValidateAudience = false,
                         ValidateIssuer = false,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
                     };
 
                     opt.Events = new JwtBearerEvents
@@ -105,7 +112,7 @@ namespace API
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
 
-                            if(!string.IsNullOrEmpty(path) && (path.StartsWithSegments("/chat") ))
+                            if (!string.IsNullOrEmpty(path) && (path.StartsWithSegments("/chat")))
                             {
                                 context.Token = accessToken;
                             }
@@ -134,6 +141,9 @@ namespace API
 
             // app.UseHttpsRedirection();
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseRouting();
 
             app.UseCors("CorsPolicy");
@@ -146,6 +156,7 @@ namespace API
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat");
+                endpoints.MapFallbackToController("Index", "Fallback");
             });
 
 

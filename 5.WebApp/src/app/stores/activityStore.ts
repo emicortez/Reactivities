@@ -1,6 +1,6 @@
 import { RootStore } from './rootStore';
 import { IActivity } from './../models/activity';
-import { observable, action, computed, runInAction } from 'mobx';
+import { observable, action, computed, runInAction, reaction, toJS } from 'mobx';
 import { SyntheticEvent } from 'react';
 import agent from '../../api/agent';
 import { history } from '../..';
@@ -14,6 +14,15 @@ export default class ActivityStore {
     rootStore: RootStore;
     constructor(rootStore: RootStore) {
         this.rootStore = rootStore;
+
+        reaction(
+            () => this.predicate.keys(),
+            () => {
+                this.page = 0;
+                this.activityRegistry.clear();
+                this.loadActivities();
+            }
+        )
     }
 
     @observable activityRegistry = new Map();
@@ -36,13 +45,13 @@ export default class ActivityStore {
 
     @computed get axiosParams() {
         const params = new URLSearchParams();
-        params.append('limit', String( LIMIT));
+        params.append('limit', String(LIMIT));
         params.append('offset', `${this.page ? this.page * LIMIT : 0}`);
 
         this.predicate.forEach((value, key) => {
-            if(key === 'startDate'){
+            if (key === 'startDate') {
                 params.append(key, value.toISOString());
-            }else{
+            } else {
                 params.append(key, value);
             }
         });
@@ -60,20 +69,21 @@ export default class ActivityStore {
 
     @action createHubConnection = (activityId: string) => {
         this.hubConnection = new HubConnectionBuilder()
-            .withUrl('http://localhost:5000/chat', {
+            .withUrl(process.env.REACT_APP_CHAT_URL!, {
                 accessTokenFactory: () => this.rootStore.commonStore.token!
             })
             .configureLogging(LogLevel.Information)
             .build();
 
-        this.hubConnection!
+            this.hubConnection
             .start()
             .then(() => console.log(this.hubConnection!.state))
             .then(() => {
-                console.log('Attempting to join group');
-                this.hubConnection!.invoke('AddToGroup', activityId)
+            if (this.hubConnection!.state === 'Connected') {
+            this.hubConnection!.invoke('AddToGroup', activityId)
+            }
             })
-            .catch((error) => console.log("Error establishing connection: ", error));
+            .catch(error => console.log('Error establishing connection: ', error));
 
         this.hubConnection.on("ReceiveComment", comment => {
             runInAction(() => {
@@ -146,7 +156,7 @@ export default class ActivityStore {
 
         if (activity) {
             this.activity = activity;
-            return activity;
+            return toJS(activity);
         } else {
             this.loadingInitial = true;
             try {
