@@ -142,8 +142,10 @@ namespace API
             services.AddScoped<IJwtGenerator, JwtGenerator>();
             services.AddScoped<IUserAccesor, UserAccesor>();
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
+            services.AddScoped<IFacebookAccessor, FacebookAccessor>();
             services.AddScoped<IProfileReader, ProfileReader>();
             services.Configure<CloudinarySettings>(Configuration.GetSection("Cloudinary"));
+            services.Configure<FacebookAppSettings>(Configuration.GetSection("FacebookAuthentication"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
