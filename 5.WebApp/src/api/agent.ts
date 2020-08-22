@@ -29,7 +29,7 @@ axios.interceptors.response.use(undefined, error => {
     if (status === 404)
         history.push('/notfound');
 
-    if(status === 401 && headers['www-authenticate'] === 'Bearer error="invalid_token", error_description="The token is expired"'){
+    if (status === 401 && headers['www-authenticate'] === 'Bearer error="invalid_token", error_description="The token is expired"') {
         window.localStorage.removeItem('jwt');
         history.push('/');
         toast.info('Your session has expired, please login again');
@@ -64,7 +64,7 @@ const requests = {
 }
 
 const Activities = {
-    get: (params: URLSearchParams): Promise<IActivitiesEnvelope> => axios.get('/activities', {params: params}).then(responseBody),
+    get: (params: URLSearchParams): Promise<IActivitiesEnvelope> => axios.get('/activities', { params: params }).then(responseBody),
     details: (id: string) => requests.get(`/activities/${id}`),
     create: (activity: IActivity) => requests.post('/activities', activity),
     update: (activity: IActivity) => requests.put(`/activities/${activity.id}`, activity),
@@ -77,7 +77,9 @@ const User = {
     current: (): Promise<IUser> => requests.get('/user'),
     login: (user: IUserFormValues): Promise<IUser> => requests.post(`/user/login`, user),
     register: (user: IUserFormValues): Promise<IUser> => requests.post(`/user/register`, user),
-    fbLogin:(accessToken:string) => requests.post(`/user/facebook`, {accessToken})
+    fbLogin: (accessToken: string) => requests.post(`/user/facebook`, { accessToken }),
+    refreshToken: (): Promise<IUser> => requests.post(`/user/refreshToken`, {}),
+
 }
 
 const Profiles = {
@@ -89,7 +91,7 @@ const Profiles = {
     follow: (username: string) => requests.post(`/profiles/${username}/follow`, {}),
     unfollow: (username: string) => requests.del(`/profiles/${username}/follow`),
     listFollowings: (username: string, predicate: string) => requests.get(`/profiles/${username}/follow?predicate=${predicate}`),
-    listActivities:(username:string, predicate: string) => requests.get(`/profiles/${username}/activities?predicate=${predicate}`)
+    listActivities: (username: string, predicate: string) => requests.get(`/profiles/${username}/activities?predicate=${predicate}`)
 }
 
 export default {
