@@ -13,7 +13,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<User>> Login(Login.Query query)
         {
-            var user =  await Mediator.Send(query);
+            var user = await Mediator.Send(query);
 
             SetTokenCookie(user.RefreshToken);
 
@@ -22,19 +22,19 @@ namespace API.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<User>> Register(Register.Command command)
+        public async Task<ActionResult> Register(Register.Command command)
         {
-            var user =  await Mediator.Send(command);
+            command.Origin = Request.Headers["origin"];
 
-            SetTokenCookie(user.RefreshToken);
+            await Mediator.Send(command);
 
-            return user;
+            return Ok("Registration successfull - please check your email");
         }
 
         [HttpGet]
         public async Task<ActionResult<User>> GetCurrentUser()
         {
-            var user =  await Mediator.Send(new CurrentUser.Query());
+            var user = await Mediator.Send(new CurrentUser.Query());
 
             SetTokenCookie(user.RefreshToken);
 
@@ -45,7 +45,7 @@ namespace API.Controllers
         [HttpPost("facebook")]
         public async Task<ActionResult<User>> FacebookLogin(ExternalLogin.Query query)
         {
-            var user =  await Mediator.Send(query);
+            var user = await Mediator.Send(query);
 
             SetTokenCookie(user.RefreshToken);
 
@@ -62,6 +62,28 @@ namespace API.Controllers
             SetTokenCookie(user.RefreshToken);
 
             return user;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("verifyEmail")]
+        public async Task<ActionResult> VerifyEmail(ConfirmEmail.Command command)
+        {
+            var result = await Mediator.Send(command);
+
+            if (!result.Succeeded) return BadRequest("Problem verifying email address");
+
+            return Ok("Email confirmed - you can now login");
+        }
+
+        [AllowAnonymous]
+        [HttpGet("resendEmailVerification")]
+        public async Task<ActionResult> VerifyEmail([FromQuery]ResendEmailVerification.Query query)
+        {
+            query.Origin = Request.Headers["origin"];
+
+            await Mediator.Send(query);
+
+            return Ok("Email verification link re-sent");
         }
 
         private void SetTokenCookie(string refreshToken)

@@ -6,6 +6,7 @@ import { DateTimePicker } from "react-widgets";
 interface IProps extends FieldRenderProps<Date, HTMLElement>, FormFieldProps {}
 
 const DateInput: React.FC<IProps> = ({
+  id = null,
   input,
   width,
   placeholder,
@@ -13,7 +14,6 @@ const DateInput: React.FC<IProps> = ({
   time = false,
   meta: { touched },
   error,
-  id = null,
   ...rest
 }) => {
   return (
@@ -23,9 +23,9 @@ const DateInput: React.FC<IProps> = ({
         value={input.value || null}
         onChange={input.onChange}
         onBlur={input.onBlur}
-        onKeyDown={(e)=> e.preventDefault()}
-        time = {time}
-        date = {date}
+        onKeyDown={(e) => e.preventDefault()}
+        time={time}
+        date={date}
         {...rest}
       />
       {touched && error && (

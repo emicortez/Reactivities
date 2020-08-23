@@ -5,10 +5,12 @@ using Domain;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,13 +18,14 @@ namespace Application.User
 {
     public class Register
     {
-        public class Command : IRequest<User>
+        public class Command : IRequest
         {
             public string DisplayName { get; set; }
             public string Username { get; set; }
             public string Email { get; set; }
-
             public string Password { get; set; }
+
+            public string Origin { get; set; }
         }
 
         public class CommandValidator : AbstractValidator<Command>
@@ -36,19 +39,20 @@ namespace Application.User
             }
         }
 
-        public class Handler : IRequestHandler<Command, User>
+        public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
             private readonly UserManager<AppUser> _userManager;
-            private readonly IJwtGenerator _jwtGenerator;
-            public Handler(DataContext context, UserManager<AppUser> userManager, IJwtGenerator jwtGenerator)
+            private readonly IEmailSender _emailSender;
+
+            public Handler(DataContext context, UserManager<AppUser> userManager, IJwtGenerator jwtGenerator, IEmailSender emailSender)
             {
                 _context = context;
                 _userManager = userManager;
-                _jwtGenerator = jwtGenerator;
+                _emailSender = emailSender;
             }
 
-            public async Task<User> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 if (await _context.Users.AnyAsync(x => x.Email == request.Email))
                     throw new RestException(System.Net.HttpStatusCode.BadRequest, new { Email = "Email already exists" });
@@ -63,17 +67,27 @@ namespace Application.User
                     UserName = request.Username,
                 };
 
-                var refreshToken = _jwtGenerator.GenerateRefreshToken();
-                user.RefreshTokens.Add(refreshToken);
+                //var refreshToken = _jwtGenerator.GenerateRefreshToken();
+                //user.RefreshTokens.Add(refreshToken);
 
                 var result = await _userManager.CreateAsync(user, request.Password);
 
-                if (result.Succeeded)
-                {
-                    return new User(user, _jwtGenerator, refreshToken.Token);
-                }
+                if (!result.Succeeded)
+                    throw new Exception("Problem saving changes");
+                //{
+                //    return new User(user, _jwtGenerator, refreshToken.Token);
+                //}
 
-                throw new Exception("Problem saving changes");
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+                var verifyUrl = $"{request.Origin}/user/verifyEmail?token={token}&email={request.Email}";
+
+                var message = $"<p>Please click the below link to verify your email address:</p><p><a href='{verifyUrl}'>{verifyUrl}</a></p>";
+
+                await _emailSender.SendEmailAsync(request.Email, "Please verify email address", message);
+
+                return Unit.Value;
             }
         }
     }

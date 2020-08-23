@@ -54,6 +54,7 @@ namespace Application.User
                     Id = userInfo.Id,
                     Email = userInfo.Email,
                     UserName = "fb_" + userInfo.Id,
+                    EmailConfirmed = true,
                 };
 
                 var photo = new Photo
